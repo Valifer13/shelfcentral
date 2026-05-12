@@ -22,17 +22,19 @@ class UserFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition(): array
-    {
-        return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
-            'two_factor_secret' => null,
-            'two_factor_recovery_codes' => null,
-            'two_factor_confirmed_at' => null,
+     public function definition(): array
+     {
+         return [
+             'library_id' => null,
+             'role' => 'MEMBER',
+             'name' => fake()->name(),
+             'email' => fake()->unique()->safeEmail(),
+             'email_verified_at' => now(),
+             'password' => static::$password ??= Hash::make('password'),
+             'remember_token' => Str::random(10),
+
+             'two_factor_recovery_codes' => null,
+             'two_factor_confirmed_at' => null,
         ];
     }
 
