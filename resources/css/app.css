@@ -1,3 +1,6 @@
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
@@ -12,6 +15,7 @@
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+    --font-instrument-serif: 'Instrument Serif', serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -26,10 +30,10 @@
     --color-popover: var(--popover);
     --color-popover-foreground: var(--popover-foreground);
 
-    --color-primary: var(--primary);
+    /*--color-primary: var(--primary);*/
     --color-primary-foreground: var(--primary-foreground);
 
-    --color-secondary: var(--secondary);
+    /*--color-secondary: var(--secondary);*/
     --color-secondary-foreground: var(--secondary-foreground);
 
     --color-muted: var(--muted);
@@ -41,7 +45,7 @@
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
 
-    --color-border: var(--border);
+    /*--color-border: var(--border);*/
     --color-input: var(--input);
     --color-ring: var(--ring);
 
@@ -59,6 +63,17 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+    /* My custom Colors */
+    --color-primary: rgb(186,237,145);
+    --color-secondary: rgb(155,210,110);
+    --color-tertiary: rgb(45,80,18);
+    --color-ink: #0d0d0d;
+    --color-ink-2: #3a3a3a;
+    --color-ink-3: #767676;
+    --color-ink-4: #b0b0b0;
+    --color-surface: #f8f8f6;
+    --color-border: rgba(0,0,0,.09);
 }
 
 :root {
@@ -68,9 +83,9 @@
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
+    /*--primary: oklch(0.205 0 0);*/
     --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
+    /*--secondary: oklch(0.97 0 0);*/
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
     --muted-foreground: oklch(0.556 0 0);
@@ -95,6 +110,17 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.87 0 0);
+
+    /* My Custom Color */
+    --primary: rgb(186,237,145);
+    --secondary: rgb(155,210,110);
+    --tertiary: rgb(45,80,18);
+    --ink: #0d0d0d;
+    --ink-2: #3a3a3a;
+    --ink-3: #767676;
+    --ink-4: #b0b0b0;
+    --surface: #f8f8f6;
+    --border: rgba(0,0,0,.09);
 }
 
 .dark {
@@ -140,4 +166,12 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+.primary-btn {
+    @apply bg-primary text-tertiary px-6 py-2 rounded-sm text-sm font-bold hover:bg-secondary hover:-translate-y-0.5 transition-all active:translate-y-0 shadow-sm;
+}
+
+.default-btn {
+    @apply hidden sm:inline-flex px-5 py-2 text-sm font-semibold border border-border hover:bg-surface rounded-lg transition-all;
 }
