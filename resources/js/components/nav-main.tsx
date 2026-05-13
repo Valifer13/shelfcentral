@@ -31,6 +31,6 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                     </SidebarMenuItem>
                 ))}
             </SidebarMenu>
-        </SidebarGroup>
+        </SidebarGroup >
     );
 }

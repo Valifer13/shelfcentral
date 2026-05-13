@@ -30,10 +30,10 @@
     --color-popover: var(--popover);
     --color-popover-foreground: var(--popover-foreground);
 
-    /*--color-primary: var(--primary);*/
+    --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
 
-    /*--color-secondary: var(--secondary);*/
+    --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
 
     --color-muted: var(--muted);
@@ -45,7 +45,7 @@
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
 
-    /*--color-border: var(--border);*/
+    --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
 
@@ -65,15 +65,15 @@
     --color-sidebar-ring: var(--sidebar-ring);
 
     /* My custom Colors */
-    --color-primary: rgb(186,237,145);
-    --color-secondary: rgb(155,210,110);
-    --color-tertiary: rgb(45,80,18);
-    --color-ink: #0d0d0d;
-    --color-ink-2: #3a3a3a;
-    --color-ink-3: #767676;
-    --color-ink-4: #b0b0b0;
-    --color-surface: #f8f8f6;
-    --color-border: rgba(0,0,0,.09);
+    /* --color-primary: rgb(186,237,145); */
+    /* --color-secondary: rgb(155,210,110); */
+    --color-tertiary: var(--tertiary);
+    --color-ink: var(--ink);
+    --color-ink-2: var(--ink-2);
+    --color-ink-3: var(--ink-3);
+    --color-ink-4: var(--ink-4);
+    --color-surface: var(--surface);
+    /* --color-border: rgba(0,0,0,.09); */
 }
 
 :root {
@@ -83,9 +83,9 @@
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    /*--primary: oklch(0.205 0 0);*/
+    --primary: oklch(0.205 0 0);
     --primary-foreground: oklch(0.985 0 0);
-    /*--secondary: oklch(0.97 0 0);*/
+    --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
     --muted-foreground: oklch(0.556 0 0);
@@ -112,15 +112,18 @@
     --sidebar-ring: oklch(0.87 0 0);
 
     /* My Custom Color */
-    --primary: rgb(186,237,145);
-    --secondary: rgb(155,210,110);
+    /* --primary: rgb(186,237,145); */
+    /* --secondary: rgb(155,210,110); */
     --tertiary: rgb(45,80,18);
+    /* --accent: rgb(186,237,145); */
     --ink: #0d0d0d;
     --ink-2: #3a3a3a;
     --ink-3: #767676;
     --ink-4: #b0b0b0;
     --surface: #f8f8f6;
-    --border: rgba(0,0,0,.09);
+    /* --sidebar-accent: rgba(186,237,145,0.2); */
+    /* --sidebar-accent-foreground: rgb(186,237,145); */
+    /* --border: rgba(0,0,0,.09); */
 }
 
 .dark {
@@ -156,6 +159,20 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(0.269 0 0);
     --sidebar-ring: oklch(0.439 0 0);
+
+    /* My Custom Color */
+    /* --primary: rgb(186,237,145); */
+    /* --secondary: rgb(155,210,110); */
+    --tertiary: rgb(45,80,18);
+    /* --accent: rgb(186,237,145); */
+    --ink: #0d0d0d;
+    --ink-2: #3a3a3a;
+    --ink-3: #767676;
+    --ink-4: #b0b0b0;
+    --surface: #f8f8f6;
+    /* --sidebar-accent: rgba(186,237,145,0.2); */
+    /* --sidebar-accent-foreground: rgb(186,237,145); */
+    /* --border: rgba(0,0,0,.09); */
 }
 
 @layer base {
