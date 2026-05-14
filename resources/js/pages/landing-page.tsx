@@ -20,6 +20,8 @@ import {
     ClipboardList,
 } from 'lucide-react';
 import { dashboard, login, register } from '@/routes';
+import { Button } from '@/components/ui/button';
+import AppLogoIcon from '@/components/app-logo-icon';
 
 export default function LandingPage({
     canRegister = true,
@@ -80,8 +82,8 @@ export default function LandingPage({
             <nav
                 id="nav"
                 className={`fixed top-0 right-0 left-0 z-[99] border-b transition-all duration-300 ${isScrolled
-                        ? 'border-black/10 bg-white/90 backdrop-blur-md'
-                        : 'border-transparent bg-transparent'
+                    ? 'border-black/10 bg-white/90 backdrop-blur-md'
+                    : 'border-transparent bg-transparent'
                     }`}
             >
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -90,40 +92,8 @@ export default function LandingPage({
                             href="/"
                             className="flex items-center gap-2.5 text-lg font-bold tracking-tight"
                         >
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#BAED91]">
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 14 14"
-                                    fill="none"
-                                >
-                                    <rect
-                                        x="1"
-                                        y="2"
-                                        width="12"
-                                        height="2"
-                                        rx=".8"
-                                        fill="#0d0d0d"
-                                    />
-                                    <rect
-                                        x="1"
-                                        y="6"
-                                        width="9"
-                                        height="2"
-                                        rx=".8"
-                                        fill="#0d0d0d"
-                                        className="opacity-70"
-                                    />
-                                    <rect
-                                        x="1"
-                                        y="10"
-                                        width="10"
-                                        height="2"
-                                        rx=".8"
-                                        fill="#0d0d0d"
-                                        className="opacity-50"
-                                    />
-                                </svg>
+                            <div className="flex h-8 w-8 p-1 shrink-0 items-center justify-center rounded-lg bg-lime-200">
+                                <AppLogoIcon />
                             </div>
                             <span
                                 className={`${isScrolled ? 'text-black' : 'text-white'}`}
@@ -148,26 +118,31 @@ export default function LandingPage({
 
                         <div className="flex items-center gap-2">
                             {auth.user ? (
-                                <Link
-                                    href={dashboard()}
-                                    className="primary-btn"
-                                >
-                                    Dashboard
-                                </Link>
+                                <>
+                                    {/* <Link */}
+                                    {/*     href={dashboard()} */}
+                                    {/*     className="primary-btn" */}
+                                    {/* > */}
+                                    {/*     Dashboard */}
+                                    {/* </Link> */}
+                                    <Button className="bg-lime-200 hover:bg-lime-300 transition-colors duration-300 text-black" asChild>
+                                        <Link href={dashboard()}>
+                                            Dashboard
+                                        </Link>
+                                    </Button>
+                                </>
                             ) : (
                                 <>
-                                    <Link
-                                        href={login()}
-                                        className={`default-btn ${isScrolled ? 'border-ink-3! text-ink hover:border-transparent hover:bg-ink! hover:text-white' : 'border-ink-3! text-ink-4 hover:border-transparent hover:text-black'}`}
-                                    >
-                                        Log in
-                                    </Link>
-                                    <Link
-                                        href={register()}
-                                        className="primary-btn"
-                                    >
-                                        Register
-                                    </Link>
+                                    <Button asChild variant={isScrolled ? "secondary" : "default"}>
+                                        <Link href={login()}>
+                                            Login
+                                        </Link>
+                                    </Button>
+                                    <Button className="bg-lime-200 hover:bg-lime-300 transition-colors duration-300 text-black" asChild>
+                                        <Link href={register()}>
+                                            Register
+                                        </Link>
+                                    </Button>
                                 </>
                             )}
                             <button
@@ -188,8 +163,8 @@ export default function LandingPage({
             {/* Mobile Menu */}
             <div
                 className={`fixed inset-0 top-16 z-[98] origin-top bg-[#111] transition-all duration-300 md:hidden ${isMenuOpen
-                        ? 'scale-y-100 opacity-100'
-                        : 'pointer-events-none scale-y-0 opacity-0'
+                    ? 'scale-y-100 opacity-100'
+                    : 'pointer-events-none scale-y-0 opacity-0'
                     }`}
             >
                 <div className="flex flex-col gap-2 px-6 py-8">
@@ -465,12 +440,12 @@ export default function LandingPage({
                                                         <td className="px-4 py-3">
                                                             <span
                                                                 className={`rounded-md px-2 py-0.5 text-[9px] font-bold ${row.type ===
-                                                                        'ok'
-                                                                        ? 'bg-[#BAED91]/10 text-[#BAED91]'
-                                                                        : row.type ===
-                                                                            'ov'
-                                                                            ? 'bg-red-500/10 text-red-400'
-                                                                            : 'bg-indigo-500/10 text-indigo-300'
+                                                                    'ok'
+                                                                    ? 'bg-[#BAED91]/10 text-[#BAED91]'
+                                                                    : row.type ===
+                                                                        'ov'
+                                                                        ? 'bg-red-500/10 text-red-400'
+                                                                        : 'bg-indigo-500/10 text-indigo-300'
                                                                     }`}
                                                             >
                                                                 {row.status}
@@ -737,8 +712,8 @@ export default function LandingPage({
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`cursor-pointer rounded-lg px-6 py-2.5 text-sm font-bold transition-all duration-200 ${activeTab === tab.id
-                                            ? 'bg-[#BAED91] text-[#2D5012] shadow-lg'
-                                            : 'text-white/40 hover:text-white/60'
+                                        ? 'bg-[#BAED91] text-[#2D5012] shadow-lg'
+                                        : 'text-white/40 hover:text-white/60'
                                         }`}
                                 >
                                     {tab.id === 'ov' && (
@@ -993,9 +968,9 @@ export default function LandingPage({
                                                             <td className="px-6 py-5">
                                                                 <span
                                                                     className={`rounded-full px-3 py-1 text-[10px] font-bold ${book.avail >
-                                                                            0
-                                                                            ? 'bg-[#BAED91]/10 text-[#BAED91]'
-                                                                            : 'bg-red-500/10 text-red-400'
+                                                                        0
+                                                                        ? 'bg-[#BAED91]/10 text-[#BAED91]'
+                                                                        : 'bg-red-500/10 text-red-400'
                                                                         }`}
                                                                 >
                                                                     {
@@ -1115,12 +1090,12 @@ export default function LandingPage({
                                                             <td className="px-6 py-5">
                                                                 <span
                                                                     className={`rounded-full px-3 py-1 text-[10px] font-bold ${m.status ===
-                                                                            'Good'
-                                                                            ? 'bg-[#BAED91]/10 text-[#BAED91]'
-                                                                            : m.status ===
-                                                                                'Overdue'
-                                                                                ? 'bg-red-500/10 text-red-400'
-                                                                                : 'bg-indigo-500/10 text-indigo-300'
+                                                                        'Good'
+                                                                        ? 'bg-[#BAED91]/10 text-[#BAED91]'
+                                                                        : m.status ===
+                                                                            'Overdue'
+                                                                            ? 'bg-red-500/10 text-red-400'
+                                                                            : 'bg-indigo-500/10 text-indigo-300'
                                                                         }`}
                                                                 >
                                                                     {m.status}
@@ -1557,8 +1532,8 @@ export default function LandingPage({
                                 </button>
                                 <div
                                     className={`overflow-hidden transition-all duration-300 ease-in-out ${openFaq === i
-                                            ? 'max-h-64 opacity-100'
-                                            : 'max-h-0 opacity-0'
+                                        ? 'max-h-64 opacity-100'
+                                        : 'max-h-0 opacity-0'
                                         }`}
                                 >
                                     <div className="px-7 pb-8">

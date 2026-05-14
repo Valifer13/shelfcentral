@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LucideBookOpen, LucideArrowLeftRight, LucideInfo, LucideTrendingUp, LucideUsers, LucideTrendingDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BorrowingTrendsChart } from '@/components/dashboard/borrowing-trends-chart';
+import BorrowByCategoryChart from '@/components/dashboard/borrow-by-category-chart';
 
 export default function Dashboard() {
     return (
@@ -73,12 +74,12 @@ export default function Dashboard() {
                         </CardContent>
                     </Card>
                 </div>
-                <div className="grid grid-cols-[1.6fr_1fr] gap-5 relative overflow-hidden">
+                <div className="grid md:grid-cols-[1.6fr_1fr] gap-5 relative overflow-hidden">
                     {/* <PlaceholderPattern className="size-full stroke-neutral-900/20 dark:stroke-neutral-100/20 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border" /> */}
                     <BorrowingTrendsChart />
-                    <PlaceholderPattern className="size-full stroke-neutral-900/20 dark:stroke-neutral-100/20 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border" />
+                    <BorrowByCategoryChart />
                 </div>
-                <div className="grid grid-cols-[1.6fr_1fr] gap-5 relative overflow-hidden">
+                <div className="grid md:grid-cols-[1.6fr_1fr] gap-5 relative overflow-hidden">
                     <PlaceholderPattern className="size-full stroke-neutral-900/20 dark:stroke-neutral-100/20 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border" />
                     <PlaceholderPattern className="size-full stroke-neutral-900/20 dark:stroke-neutral-100/20 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border" />
                 </div>
