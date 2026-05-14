@@ -16,6 +16,7 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 import { NavSettings } from './nav-settings';
+import books from '@/routes/books';
 
 const mainNavItems: NavItem[] = [
     {
@@ -25,7 +26,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Books',
-        href: '#',
+        href: books.index(),
         icon: BookOpen,
     },
     {
