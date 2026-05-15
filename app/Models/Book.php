@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['library_id', 'isbn', 'title', 'publisher_id', 'category_id', 'publication_year', 'stock_total', 'stock_available', 'average_rating', 'total_reviews'])]
+#[Fillable(['library_id', 'isbn', 'title', 'publisher_id', 'category_id', 'author_id', 'publication_year', 'stock_total', 'stock_available', 'average_rating', 'total_reviews'])]
 class Book extends Model
 {
     /** @use HasFactory<\Database\Factories\BookFactory> */
@@ -41,9 +41,9 @@ class Book extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function authors(): BelongsToMany
+    public function author(): BelongsTo
     {
-        return $this->belongsToMany(Author::class, 'book_authors');
+        return $this->belongsTo(Author::class);
     }
 
     public function copies(): HasMany

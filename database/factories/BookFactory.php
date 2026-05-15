@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Author;
 use App\Models\Category;
 use App\Models\Library;
 use App\Models\Publisher;
@@ -26,6 +27,7 @@ class BookFactory extends Factory
             'title' => $this->faker->sentence(3),
             'publisher_id' => Publisher::factory(['library_id' => $library]),
             'category_id' => Category::factory(['library_id' => $library]),
+            'author_id' => Author::factory(['library_id' => $library]),
             'publication_year' => $this->faker->year(),
             'stock_total' => 10,
             'stock_available' => 10,

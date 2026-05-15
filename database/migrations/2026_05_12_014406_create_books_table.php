@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('title');
             $table->foreignId('publisher_id')->constrained()->cascadeOnDelete();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('author_id')->constrained()->cascadeOnDelete();
             $table->year('publication_year');
             $table->integer('stock_total')->default(0);
             $table->integer('stock_available')->default(0);

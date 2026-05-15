@@ -14,7 +14,7 @@ class BookController extends Controller
     public function index()
     {
         $books = Book::query()
-            ->with(['category', 'authors'])
+            ->with(['category', 'author'])
             ->latest()
             ->paginate(10);
 

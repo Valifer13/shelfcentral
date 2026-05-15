@@ -82,10 +82,11 @@ class LibrarySeeder extends Seeder
                     'library_id' => $library->id,
                     'category_id' => $categories->random()->id,
                     'publisher_id' => $publishers->random()->id,
+                    'author_id' => $authors->random()->id,
                 ]);
 
                 // Attach 1-3 authors to each book
-                $book->authors()->attach($authors->random(rand(1, 3))->pluck('id'));
+                // $book->author()->attach($authors->random(rand(1, 3))->pluck('id'));
 
                 // Create 3 copies for each book
                 $copies = BookCopy::factory(3)->create([

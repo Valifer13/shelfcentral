@@ -49,7 +49,7 @@ export default function BorrowByCategoryChart() {
             <CardContent className="flex pb-0 flex-col lg:flex-row gap-5">
                 <ChartContainer
                     config={chartConfig}
-                    className="aspect-square max-h-[200px]"
+                    className="aspect-square max-h-50"
                 >
                     <PieChart>
                         <ChartTooltip
