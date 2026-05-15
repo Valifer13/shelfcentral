@@ -13,8 +13,13 @@ class BookController extends Controller
      */
     public function index()
     {
-        return Inertia::render('books/index', [
-            'books' => Book::all(),
+        $books = Book::query()
+            ->with(['category', 'authors'])
+            ->latest()
+            ->paginate(10);
+
+        return Inertia::render('books/page', [
+            'books' => $books,
         ]);
     }
 

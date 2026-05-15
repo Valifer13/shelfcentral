@@ -1,7 +1,9 @@
 import books from "@/routes/books";
+import { Book } from "@/types/book";
 import { Head } from "@inertiajs/react"
 
-export default function BookIndexPage() {
+export default function BookIndexPage({ books } : { books: Book[] }) {
+    console.log(books);
     return (
         <>
             <Head title="Book" />
