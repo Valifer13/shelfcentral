@@ -6,12 +6,37 @@ import { Label, Pie, PieChart } from "recharts";
 
 export const description = "A borrowing trend by category";
 
-const chartData: { category: string, percentage: number, fill: string }[] = [
-    { category: "Science", percentage: 32, fill: "var(--color-science)" },
-    { category: "Self-Help", percentage: 24, fill: "var(--color-selfHelp)" },
-    { category: "Business", percentage: 18, fill: "var(--color-business)" },
-    { category: "Fiction", percentage: 14, fill: "var(--color-fiction)" },
-    { category: "Other", percentage: 12, fill: "var(--color-other)" },
+const chartData: { category: string, percentage: number, fill: string, color: string }[] = [
+    {
+        category: "Science",
+        percentage: 32,
+        fill: "var(--color-science)",
+        color: "bg-[oklch(77.7%_0.152_181.912)]",
+    },
+    {
+        category: "Self Help",
+        percentage: 24,
+        fill: "var(--color-selfHelp)",
+        color: "bg-[oklch(70.7%_0.165_254.624)]",
+    },
+    {
+        category: "Business",
+        percentage: 18,
+        fill: "var(--color-business)",
+        color: "bg-[oklch(79.2%_0.209_151.711)]",
+    },
+    {
+        category: "Fiction",
+        percentage: 14,
+        fill: "var(--color-fiction)",
+        color: "bg-[oklch(70.4%_0.191_22.216)]",
+    },
+    {
+        category: "Other",
+        percentage: 12,
+        fill: "var(--color-other)",
+        color: "bg-[oklch(70.8%_0_0)]",
+    },
 ]
 
 const chartConfig = {
@@ -95,16 +120,16 @@ export default function BorrowByCategoryChart() {
                         </Pie>
                     </PieChart>
                 </ChartContainer>
-                <div className="w-full gap-5">
-                    {chartData.map((data) => {
+                <div className="flex flex-col w-full gap-2">
+                    {chartData.reverse().map((data) => {
                         return (
                             <>
                                 <Field className="w-full">
-                                    <FieldLabel htmlFor="progress-upload">
+                                    <FieldLabel htmlFor={`chart-${data.category.replaceAll(' ', '').toLocaleLowerCase()}`}>
                                         <span>{data.category}</span>
                                         <span className="ml-auto">{data.percentage}%</span>
                                     </FieldLabel>
-                                    <Progress value={data.percentage} id="progress-upload" />
+                                    <Progress value={data.percentage} id={`chart-${data.category.replaceAll(' ', '').toLocaleLowerCase()}`} indicatorClassName={`${data.color}`} />
                                 </Field>
                             </>
                         );
