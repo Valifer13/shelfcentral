@@ -16,7 +16,7 @@ class BookController extends Controller
         $books = Book::query()
             ->with(['category', 'author'])
             ->latest()
-            ->paginate(10);
+            ->get();
 
         return Inertia::render('books/page', [
             'books' => $books,
@@ -28,7 +28,7 @@ class BookController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('books/create');
     }
 
     /**
