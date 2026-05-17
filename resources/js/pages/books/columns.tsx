@@ -39,7 +39,7 @@ export const columns: ColumnDef<Book>[] = [
                 <img className="h-20" src="https://i.pinimg.com/1200x/28/80/09/288009b140adb9df71b7f5fcb0353ac5.jpg" alt="book-cover" />
                 <div className="flex flex-col gap-2">
                     <h6 className="font-bold text-lg">{row.getValue("title")}</h6>
-                    <span className="text-(--color-muted-foreground) text-xs">ISBN: {row.original.isbn}</span>
+                    <span className="text-muted-foreground text-xs">ISBN {row.original.isbn}</span>
                 </div>
             </div>
         )

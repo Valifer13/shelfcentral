@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Author;
 use App\Models\Book;
+use App\Models\Category;
+use App\Models\Publisher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class BookController extends Controller
@@ -28,7 +32,17 @@ class BookController extends Controller
      */
     public function create()
     {
-        return Inertia::render('books/create');
+        $library_id = Auth::user()->library_id;
+        $categories = Category::all(['id', 'name']);
+        $authors    = Author::all(['id', 'name']);
+        $publishers = Publisher::all(['id', 'name']);
+
+        return Inertia::render('books/create', [
+            'library_id' => $library_id,
+            'categories' => $categories,
+            'authors'    => $authors,
+            'publishers' => $publishers
+        ]);
     }
 
     /**
@@ -36,7 +50,7 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        dd($request);
     }
 
     /**
