@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\LibraryScope;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['library_id', 'isbn', 'title', 'publisher_id', 'category_id', 'author_id', 'publication_year', 'stock_total', 'stock_available', 'average_rating', 'total_reviews'])]
+#[ScopedBy([LibraryScope::class])]
 class Book extends Model
 {
     /** @use HasFactory<\Database\Factories\BookFactory> */

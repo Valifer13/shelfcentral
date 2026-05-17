@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\LibraryScope;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable(['library_id', 'grace_period_days', 'fine_per_day', 'max_fine_amount'])]
+#[ScopedBy([LibraryScope::class])]
 class FineSetting extends Model
 {
     /** @use HasFactory<\Database\Factories\FineSettingFactory> */
