@@ -1,296 +1,416 @@
+import { useForm } from "@tanstack/react-form";
+import { zodValidator } from "@tanstack/zod-form-adapter";
+import { z } from "zod";
+import { router, usePage } from "@inertiajs/react";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown, RotateCcw, BookPlus } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { dashboard } from "@/routes";
 import books from "@/routes/books";
-import { Head } from "@inertiajs/react";
-import { useForm } from "@tanstack/react-form";
-import { LucideBook } from "lucide-react";
-import { toast } from "sonner";
-import * as z from "zod";
 
-const formSchema = z.object({
-    library_id: z.number(),
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-    isbn: z
-        .string()
-        .regex(/^[0-9-]+$/, "ISBN must contain only numbers and dashes"),
+interface PageProps {
+    library_id: number;
+    authors: string[];
+    publishers: string[];
+    categories: string[];
+}
 
-    title: z
-        .string()
-        .trim()
-        .min(1, "Title must not be empty"),
+// ─── Schema ───────────────────────────────────────────────────────────────────
 
-    publisher: z.string().nullable(),
-    author: z.string().nullable(),
-    category: z.string().nullable(),
-
+const bookSchema = z.object({
+    isbn: z.string().regex(/^[0-9-]+$/, "ISBN must contain only numbers and dashes"),
+    title: z.string().min(1, "Title is required"),
+    publisher: z.string().nullable().optional(),
+    author: z.string().nullable().optional(),
+    category: z.string().nullable().optional(),
     publication_year: z
-        .coerce
-        .number()
-        .min(1000, "Invalid Year")
-        .max(new Date().getFullYear(), "Year can't be in the future"),
-
+        .number("Must be a number")
+        .int()
+        .min(1000, "Enter a valid year")
+        .max(new Date().getFullYear(), "Year cannot be in the future"),
     stock_total: z
-        .coerce
-        .number()
-        .min(0, "Stock can't be negative")
+        .number("Must be a number")
+        .int()
+        .min(0, "Stock cannot be negative")
+        .default(0),
 });
 
-export default function BookCreatePage({ 
-    library_id,
-    authors,
-    publishers,
-    categories
-}: {
-    library_id: number
-    authors: any,
-    publishers: any,
-    categories: any
-}) {
-    const defaultValues = {
-        library_id: Number(library_id),
+type BookFormValues = z.infer<typeof bookSchema>;
+
+// ─── Searchable Select ────────────────────────────────────────────────────────
+
+interface SearchableSelectProps {
+    options: any[];
+    value: string | null | undefined;
+    onChange: (value: string | null) => void;
+    placeholder?: string;
+    searchPlaceholder?: string;
+    error?: string;
+}
+
+function SearchableSelect({
+    options,
+    value,
+    onChange,
+    placeholder = "Select an option",
+    searchPlaceholder = "Search...",
+    error,
+}: SearchableSelectProps) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className={cn(
+                        "w-full justify-between font-normal",
+                        !value && "text-muted-foreground",
+                        error && "border-destructive focus-visible:ring-destructive"
+                    )}
+                >
+                    {value ?? placeholder}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                    <CommandInput placeholder={searchPlaceholder} />
+                    <CommandList>
+                        <CommandEmpty>No results found.</CommandEmpty>
+                        <CommandGroup>
+                            {/* Allow clearing */}
+                            <CommandItem
+                                value="__clear__"
+                                onSelect={() => {
+                                    onChange(null);
+                                    setOpen(false);
+                                }}
+                                className="text-muted-foreground italic"
+                            >
+                                <Check
+                                    className={cn(
+                                        "mr-2 h-4 w-4",
+                                        value == null ? "opacity-100" : "opacity-0"
+                                    )}
+                                />
+                                None
+                            </CommandItem>
+                            {options.map((opt) => (
+                                <CommandItem
+                                    key={opt.name}
+                                    value={opt.name}
+                                    onSelect={() => {
+                                        onChange(opt.name === value ? null : opt.name);
+                                        setOpen(false);
+                                    }}
+                                >
+                                    <Check
+                                        className={cn(
+                                            "mr-2 h-4 w-4",
+                                            value === opt.name ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                    {opt.name}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+}
+
+// ─── Field Error ──────────────────────────────────────────────────────────────
+
+function FieldError({ message }: { message?: string }) {
+    if (!message) return null;
+    return <p className="text-sm text-destructive mt-1">{message}</p>;
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function BookCreatePage({ library_id, authors, publishers, categories }: { library_id: number, authors: any, publishers: any, categories: any }) {
+    const defaultValues: BookFormValues = {
         isbn: "",
         title: "",
-        publisher: null as string | null,
-        author: null as string | null,
-        category: null as string | null,
-        publication_year: 0,
+        publisher: null,
+        author: null,
+        category: null,
+        publication_year: new Date().getFullYear(),
         stock_total: 0,
-    } satisfies z.infer<typeof formSchema>;
+    };
 
     const form = useForm({
         defaultValues,
+        validatorAdapter: zodValidator(),
         validators: {
-            onSubmit: formSchema,
+            onSubmit: bookSchema,
         },
         onSubmit: async ({ value }) => {
-            toast.success("Form submitted successfully");
-        }
+            router.post("/books", {
+                ...value,
+                library_id,
+            });
+        },
     });
 
+    const handleReset = () => {
+        form.reset();
+    };
+
     return (
-        <>
-            <Head title="Book" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <Card className="min-w-lg mx-auto">
-                    <CardHeader className="flex gap-4 items-center">
-                        <LucideBook color="blue" className="bg-blue-900/40 p-2 rounded-sm" size={40} />
-                        <div className="flex flex-col gap-2">
-                            <CardTitle>Add New Book</CardTitle>
-                            <CardDescription>Add new book into the library.</CardDescription>
+        <div className="min-h-screen bg-background">
+            <div className="max-w-2xl mx-auto px-4 py-10">
+                {/* Header */}
+                <div className="mb-8 flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground">
+                        <BookPlus className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-semibold tracking-tight">Add New Book</h1>
+                        <p className="text-sm text-muted-foreground">
+                            Fill in the details below to add a book to the library.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Form Card */}
+                <div className="rounded-xl border bg-card shadow-sm p-6 space-y-6">
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            form.handleSubmit();
+                        }}
+                        className="space-y-5"
+                    >
+                        {/* Title */}
+                        <form.Field name="isbn">
+                            {(field) => (
+                                <div className="space-y-1.5">
+                                    <Label htmlFor={field.name}>
+                                        ISBN <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Input
+                                        id={field.name}
+                                        value={field.state.value}
+                                        onChange={(e) => field.handleChange(e.target.value)}
+                                        onBlur={field.handleBlur}
+                                        placeholder="e.g. 1-142-1657-1"
+                                        className={cn(
+                                            field.state.meta.errors.length > 0 &&
+                                            "border-destructive focus-visible:ring-destructive"
+                                        )}
+                                    />
+                                    <FieldError
+                                        message={field.state.meta.errors.join(', ')}
+                                    />
+                                </div>
+                            )}
+                        </form.Field>
+
+                        {/* Title */}
+                        <form.Field name="title">
+                            {(field) => (
+                                <div className="space-y-1.5">
+                                    <Label htmlFor={field.name}>
+                                        Title <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Input
+                                        id={field.name}
+                                        value={field.state.value}
+                                        onChange={(e) => field.handleChange(e.target.value)}
+                                        onBlur={field.handleBlur}
+                                        placeholder="e.g. The Great Gatsby"
+                                        className={cn(
+                                            field.state.meta.errors.length > 0 &&
+                                            "border-destructive focus-visible:ring-destructive"
+                                        )}
+                                    />
+                                    <FieldError
+                                        message={field.state.meta.errors.join(', ')}
+                                    />
+                                </div>
+                            )}
+                        </form.Field>
+
+                        {/* Author */}
+                        <form.Field name="author">
+                            {(field) => (
+                                <div className="space-y-1.5">
+                                    <Label>Author</Label>
+                                    <SearchableSelect
+                                        options={authors}
+                                        value={field.state.value}
+                                        onChange={(val) => field.handleChange(val)}
+                                        placeholder="Select an author"
+                                        searchPlaceholder="Search authors..."
+                                        error={field.state.meta.errors.join(', ')}
+                                    />
+                                    <FieldError
+                                        message={field.state.meta.errors.join(', ')}
+                                    />
+                                </div>
+                            )}
+                        </form.Field>
+
+                        {/* Publisher */}
+                        <form.Field name="publisher">
+                            {(field) => (
+                                <div className="space-y-1.5">
+                                    <Label>Publisher</Label>
+                                    <SearchableSelect
+                                        options={publishers}
+                                        value={field.state.value}
+                                        onChange={(val) => field.handleChange(val)}
+                                        placeholder="Select a publisher"
+                                        searchPlaceholder="Search publishers..."
+                                        error={field.state.meta.errors.join(', ')}
+                                    />
+                                    <FieldError
+                                        message={field.state.meta.errors.join(', ')}
+                                    />
+                                </div>
+                            )}
+                        </form.Field>
+
+                        {/* Category */}
+                        <form.Field name="category">
+                            {(field) => (
+                                <div className="space-y-1.5">
+                                    <Label>Category</Label>
+                                    <SearchableSelect
+                                        options={categories}
+                                        value={field.state.value}
+                                        onChange={(val) => field.handleChange(val)}
+                                        placeholder="Select a category"
+                                        searchPlaceholder="Search categories..."
+                                        error={field.state.meta.errors.join(', ')}
+                                    />
+                                    <FieldError
+                                        message={field.state.meta.errors.join(', ')}
+                                    />
+                                </div>
+                            )}
+                        </form.Field>
+
+                        {/* Publication Year & Stock — side by side */}
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Publication Year */}
+                            <form.Field name="publication_year">
+                                {(field) => (
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor={field.name}>
+                                            Publication Year{" "}
+                                            <span className="text-destructive">*</span>
+                                        </Label>
+                                        <Input
+                                            id={field.name}
+                                            type="number"
+                                            value={field.state.value}
+                                            onChange={(e) =>
+                                                field.handleChange(Number(e.target.value))
+                                            }
+                                            onBlur={field.handleBlur}
+                                            placeholder={String(new Date().getFullYear())}
+                                            min={1000}
+                                            max={new Date().getFullYear()}
+                                            className={cn(
+                                                field.state.meta.errors.length > 0 &&
+                                                "border-destructive focus-visible:ring-destructive"
+                                            )}
+                                        />
+                                        <FieldError
+                                            message={field.state.meta.errors.join(', ')}
+                                        />
+                                    </div>
+                                )}
+                            </form.Field>
+
+                            {/* Stock Total */}
+                            <form.Field name="stock_total">
+                                {(field) => (
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor={field.name}>
+                                            Stock Total{" "}
+                                            <span className="text-destructive">*</span>
+                                        </Label>
+                                        <Input
+                                            id={field.name}
+                                            type="number"
+                                            value={field.state.value}
+                                            onChange={(e) =>
+                                                field.handleChange(Number(e.target.value))
+                                            }
+                                            onBlur={field.handleBlur}
+                                            placeholder="0"
+                                            min={0}
+                                            className={cn(
+                                                field.state.meta.errors.length > 0 &&
+                                                "border-destructive focus-visible:ring-destructive"
+                                            )}
+                                        />
+                                        <FieldError
+                                            message={field.state.meta.errors.join(', ')}
+                                        />
+                                    </div>
+                                )}
+                            </form.Field>
                         </div>
-                    </CardHeader>
-                    <Separator />
-                    <CardContent>
-                        <form
-                            id="create-book-form"
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                form.handleSubmit();
-                            }}
-                        >
-                            <FieldGroup>
-                                <div className="flex gap-4 items-center">
-                                    <form.Field
-                                        name="isbn"
-                                        children={(field) => {
-                                            const isInvalid =
-                                                field.state.meta.isTouched && !field.state.meta.isValid;
-                                            return (
-                                                <Field data-invalid={isInvalid}>
-                                                    <FieldLabel htmlFor={field.name}>ISBN</FieldLabel>
-                                                    <Input
-                                                        id={field.name}
-                                                        name={field.name}
-                                                        value={field.state.value}
-                                                        onBlur={field.handleBlur}
-                                                        onChange={(e) => field.handleChange(e.target.value)}
-                                                        aria-invalid={isInvalid}
-                                                        placeholder="0-321-65432-1"
-                                                        autoComplete="off"
-                                                    />
-                                                </Field>
-                                            )
-                                        }}
-                                    />
-                                    <form.Field
-                                        name="title"
-                                        children={(field) => {
-                                            const isInvalid =
-                                                field.state.meta.isTouched && !field.state.meta.isValid;
-                                            return (
-                                                <Field data-invalid={isInvalid}>
-                                                    <FieldLabel htmlFor={field.name}>Title</FieldLabel>
-                                                    <Input
-                                                        id={field.name}
-                                                        name={field.name}
-                                                        value={field.state.value}
-                                                        onBlur={field.handleBlur}
-                                                        onChange={(e) => field.handleChange(e.target.value)}
-                                                        aria-invalid={isInvalid}
-                                                        placeholder="Title of the book"
-                                                        autoComplete="off"
-                                                    />
-                                                </Field>
-                                            )
-                                        }}
-                                    />
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <form.Field
-                                        name="publisher"
-                                        children={(field) => {
-                                            const isInvalid =
-                                                field.state.meta.isTouched && !field.state.meta.isValid;
-                                            return (
-                                                <Field data-invalid={isInvalid}>
-                                                    <FieldLabel htmlFor={field.name}>Publisher</FieldLabel>
-                                                    <Combobox items={publishers}>
-                                                        <ComboboxInput placeholder={`Select a publisher`} showClear />
-                                                        <ComboboxContent>
-                                                            <ComboboxEmpty>No items found.</ComboboxEmpty>
-                                                            <ComboboxList>
-                                                                {(item) => (
-                                                                    <ComboboxItem key={item.name} value={item.name} onSelect={(value) => {
-                                                                        field.handleChange(value);
-                                                                    }}>
-                                                                        {item.name}
-                                                                    </ComboboxItem>
-                                                                )}
-                                                            </ComboboxList>
-                                                        </ComboboxContent>
-                                                    </Combobox>
-                                                </Field>
-                                            )
-                                        }}
-                                    />
-                                    <form.Field
-                                        name="author"
-                                        children={(field) => {
-                                            const isInvalid =
-                                                field.state.meta.isTouched && !field.state.meta.isValid;
-                                            return (
-                                                <Field data-invalid={isInvalid}>
-                                                    <FieldLabel htmlFor={field.name}>Author</FieldLabel>
-                                                    <Combobox items={authors}>
-                                                        <ComboboxInput placeholder={`Select a author`} showClear />
-                                                        <ComboboxContent>
-                                                            <ComboboxEmpty>No items found.</ComboboxEmpty>
-                                                            <ComboboxList>
-                                                                {(item) => (
-                                                                    <ComboboxItem key={item.name} value={item.name} onSelect={(value) => {
-                                                                        field.handleChange(value);
-                                                                    }}>
-                                                                        {item.name}
-                                                                    </ComboboxItem>
-                                                                )}
-                                                            </ComboboxList>
-                                                        </ComboboxContent>
-                                                    </Combobox>
-                                                </Field>
-                                            )
-                                        }}
-                                    />
-                                </div>
-                                <form.Field
-                                    name="category"
-                                    children={(field) => {
-                                        const isInvalid =
-                                            field.state.meta.isTouched && !field.state.meta.isValid;
-                                        return (
-                                            <Field data-invalid={isInvalid}>
-                                                <FieldLabel htmlFor={field.name}>Category</FieldLabel>
-                                                <Combobox items={categories}>
-                                                    <ComboboxInput placeholder={`Select a category`} showClear />
-                                                    <ComboboxContent>
-                                                        <ComboboxEmpty>No items found.</ComboboxEmpty>
-                                                        <ComboboxList>
-                                                            {(item) => (
-                                                                <ComboboxItem key={item.name} value={item.name} onSelect={(value) => {
-                                                                    field.handleChange(value);
-                                                                }}>
-                                                                    {item.name}
-                                                                </ComboboxItem>
-                                                            )}
-                                                        </ComboboxList>
-                                                    </ComboboxContent>
-                                                </Combobox>
-                                            </Field>
-                                        )
-                                    }}
-                                />
-                                <div className="flex items-center gap-4">
-                                    <form.Field
-                                        name="publication_year"
-                                        children={(field) => {
-                                            const isInvalid =
-                                                field.state.meta.isTouched && !field.state.meta.isValid;
-                                            return (
-                                                <Field data-invalid={isInvalid}>
-                                                    <FieldLabel htmlFor={field.name}>Publication Year</FieldLabel>
-                                                    <Input
-                                                        id={field.name}
-                                                        name={field.name}
-                                                        type="number"
-                                                        min={1000}
-                                                        max={new Date().getFullYear()}
-                                                        value={field.state.value}
-                                                        onBlur={field.handleBlur}
-                                                        onChange={(e) => field.handleChange(e.target.value)}
-                                                        aria-invalid={isInvalid}
-                                                        placeholder="Publication Year"
-                                                        autoComplete="off"
-                                                    />
-                                                </Field>
-                                            )
-                                        }}
-                                    />
-                                    <form.Field
-                                        name="stock_total"
-                                        children={(field) => {
-                                            const isInvalid =
-                                                field.state.meta.isTouched && !field.state.meta.isValid;
-                                            return (
-                                                <Field data-invalid={isInvalid}>
-                                                    <FieldLabel htmlFor={field.name}>Stock Total</FieldLabel>
-                                                    <Input
-                                                        id={field.name}
-                                                        name={field.name}
-                                                        type="number"
-                                                        value={field.state.value}
-                                                        onBlur={field.handleBlur}
-                                                        onChange={(e) => field.handleChange(e.target.value)}
-                                                        aria-invalid={isInvalid}
-                                                        placeholder="Stock total of the book"
-                                                        autoComplete="off"
-                                                    />
-                                                </Field>
-                                            )
-                                        }}
-                                    />
-                                </div>
-                            </FieldGroup>
-                        </form>
-                    </CardContent>
-                    <Separator />
-                    <CardFooter>
-                        <Field orientation="horizontal" className="justify-end">
-                            <Button type="button" variant="outline" onClick={() => form.reset()}>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-end gap-3 pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleReset}
+                                className="gap-2"
+                            >
+                                <RotateCcw className="w-4 h-4" />
                                 Reset
                             </Button>
-                            <Button type="submit" form="create-book-form">
-                                Submit
-                            </Button>
-                        </Field>
-                    </CardFooter>
-                </Card>
+                            <form.Subscribe
+                                selector={(state) => [state.canSubmit, state.isSubmitting]}
+                            >
+                                {([canSubmit, isSubmitting]) => (
+                                    <Button
+                                        type="submit"
+                                        disabled={!canSubmit || isSubmitting}
+                                        className="gap-2"
+                                    >
+                                        <BookPlus className="w-4 h-4" />
+                                        {isSubmitting ? "Saving..." : "Add Book"}
+                                    </Button>
+                                )}
+                            </form.Subscribe>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </>
-    )
+        </div>
+    );
 }
 
 BookCreatePage.layout = {
