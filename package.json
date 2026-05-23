@@ -24,6 +24,7 @@
         "eslint-plugin-import": "^2.32.0",
         "eslint-plugin-react": "^7.37.3",
         "eslint-plugin-react-hooks": "^7.0.0",
+        "knip": "^6.14.1",
         "prettier": "^3.4.2",
         "prettier-plugin-tailwindcss": "^0.6.11",
         "typescript-eslint": "^8.23.0"
@@ -31,6 +32,7 @@
     "dependencies": {
         "@base-ui/react": "^1.4.1",
         "@headlessui/react": "^2.2.0",
+        "@hookform/resolvers": "^5.2.2",
         "@inertiajs/react": "^3.0.0",
         "@inertiajs/vite": "^3.0.0",
         "@radix-ui/react-avatar": "^1.1.3",
@@ -49,7 +51,6 @@
         "@tailwindcss/vite": "^4.1.11",
         "@tanstack/react-form": "^1.32.0",
         "@tanstack/react-table": "^8.21.3",
-        "@tanstack/zod-form-adapter": "^0.42.1",
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
         "@vitejs/plugin-react": "^5.2.0",
@@ -66,6 +67,7 @@
         "react": "^19.2.0",
         "react-day-picker": "^10.0.1",
         "react-dom": "^19.2.0",
+        "react-hook-form": "^7.76.0",
         "recharts": "3.8.0",
         "sonner": "^2.0.0",
         "tailwind-merge": "^3.0.1",

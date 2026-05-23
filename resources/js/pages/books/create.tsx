@@ -1,62 +1,48 @@
-import { useForm } from "@tanstack/react-form";
-import { zodValidator } from "@tanstack/zod-form-adapter";
-import { z } from "zod";
-import { router, usePage } from "@inertiajs/react";
-import { useState } from "react";
-
+import InputError from "@/components/input-error";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown, RotateCcw, BookPlus } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { dashboard } from "@/routes";
-import books from "@/routes/books";
+import books, { store } from "@/routes/books";
+import { Form, Head, router, usePage } from "@inertiajs/react";
+import { LucideBookPlus, LucideCheck, LucideChevronsUpDown } from "lucide-react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { InputGroup, InputGroupAddon, InputGroupText, InputGroupTextarea } from "@/components/ui/input-group";
+import { register } from "module";
+import { toast } from "sonner";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface PageProps {
-    library_id: number;
-    authors: string[];
-    publishers: string[];
-    categories: string[];
-}
-
-// ─── Schema ───────────────────────────────────────────────────────────────────
-
-const bookSchema = z.object({
-    isbn: z.string().regex(/^[0-9-]+$/, "ISBN must contain only numbers and dashes"),
+const formSchema = z.object({
+    library_id: z.number(),
+    isbn: z
+        .string()
+        .min(1, "ISBN must not be empty")
+        .regex(/^[0-9-]+$/, "ISBN must contain only numbers and dashes"),
     title: z.string().min(1, "Title is required"),
-    publisher: z.string().nullable().optional(),
     author: z.string().nullable().optional(),
+    publisher: z.string().nullable().optional(),
     category: z.string().nullable().optional(),
     publication_year: z
-        .number("Must be a number")
+        .coerce
+        .number<number>("Must be a number")
         .int()
         .min(1000, "Enter a valid year")
         .max(new Date().getFullYear(), "Year cannot be in the future"),
     stock_total: z
-        .number("Must be a number")
+        .coerce
+        .number<number>("Must be a number")
         .int()
         .min(0, "Stock cannot be negative")
-        .default(0),
 });
 
-type BookFormValues = z.infer<typeof bookSchema>;
-
-// ─── Searchable Select ────────────────────────────────────────────────────────
+type BookFormValues = z.infer<typeof formSchema>;
 
 interface SearchableSelectProps {
     options: any[];
@@ -91,7 +77,7 @@ function SearchableSelect({
                     )}
                 >
                     {value ?? placeholder}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <LucideChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0" align="start">
@@ -109,7 +95,7 @@ function SearchableSelect({
                                 }}
                                 className="text-muted-foreground italic"
                             >
-                                <Check
+                                <LucideCheck
                                     className={cn(
                                         "mr-2 h-4 w-4",
                                         value == null ? "opacity-100" : "opacity-0"
@@ -126,7 +112,7 @@ function SearchableSelect({
                                         setOpen(false);
                                     }}
                                 >
-                                    <Check
+                                    <LucideCheck
                                         className={cn(
                                             "mr-2 h-4 w-4",
                                             value === opt.name ? "opacity-100" : "opacity-0"
@@ -143,274 +129,232 @@ function SearchableSelect({
     );
 }
 
-// ─── Field Error ──────────────────────────────────────────────────────────────
+export default function BookCreatePage() {
+    const { library_id, authors, publishers, categories } = usePage().props;
 
-function FieldError({ message }: { message?: string }) {
-    if (!message) return null;
-    return <p className="text-sm text-destructive mt-1">{message}</p>;
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-export default function BookCreatePage({ library_id, authors, publishers, categories }: { library_id: number, authors: any, publishers: any, categories: any }) {
     const defaultValues: BookFormValues = {
+        library_id: Number(library_id),
         isbn: "",
         title: "",
-        publisher: null,
         author: null,
+        publisher: null,
         category: null,
         publication_year: new Date().getFullYear(),
-        stock_total: 0,
-    };
+        stock_total: 0
+    }
 
-    const form = useForm({
-        defaultValues,
-        validatorAdapter: zodValidator(),
-        validators: {
-            onSubmit: bookSchema,
-        },
-        onSubmit: async ({ value }) => {
-            router.post("/books", {
-                ...value,
-                library_id,
-            });
-        },
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues
     });
 
-    const handleReset = () => {
-        form.reset();
-    };
+    function onSubmit(data: z.infer<typeof formSchema>) {
+        console.log("Submited data: ", data);
+        router.post(books.index(), data, {
+            onProgress: () => {
+                toast.loading("Creating book...");
+            },
+            onSuccess: () => {
+                toast.success("Book created!");
+            },
+            onError: (errors) => {
+                toast.error("There's something wrong.");
+                console.log("Failed request: ", errors);
+            }
+        });
+    }
 
     return (
-        <div className="min-h-screen bg-background">
-            <div className="max-w-2xl mx-auto px-4 py-10">
-                {/* Header */}
-                <div className="mb-8 flex items-center gap-3">
+        <>
+            <Card className="w-full sm:max-w-md mx-auto mt-10">
+                <CardHeader className="flex gap-4 items-center">
                     <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground">
-                        <BookPlus className="w-5 h-5" />
+                        <LucideBookPlus className="w-5 h-5" />
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight">Add New Book</h1>
-                        <p className="text-sm text-muted-foreground">
+                    <div className="flex flex-col gap-1">
+                        <CardTitle>Add New Book</CardTitle>
+                        <CardDescription>
                             Fill in the details below to add a book to the library.
-                        </p>
+                        </CardDescription>
                     </div>
-                </div>
-
-                {/* Form Card */}
-                <div className="rounded-xl border bg-card shadow-sm p-6 space-y-6">
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            form.handleSubmit();
-                        }}
-                        className="space-y-5"
-                    >
-                        {/* Title */}
-                        <form.Field name="isbn">
-                            {(field) => (
-                                <div className="space-y-1.5">
-                                    <Label htmlFor={field.name}>
-                                        ISBN <span className="text-destructive">*</span>
-                                    </Label>
-                                    <Input
-                                        id={field.name}
-                                        value={field.state.value}
-                                        onChange={(e) => field.handleChange(e.target.value)}
-                                        onBlur={field.handleBlur}
-                                        placeholder="e.g. 1-142-1657-1"
-                                        className={cn(
-                                            field.state.meta.errors.length > 0 &&
-                                            "border-destructive focus-visible:ring-destructive"
-                                        )}
-                                    />
-                                    <FieldError
-                                        message={field.state.meta.errors.join(', ')}
-                                    />
-                                </div>
-                            )}
-                        </form.Field>
-
-                        {/* Title */}
-                        <form.Field name="title">
-                            {(field) => (
-                                <div className="space-y-1.5">
-                                    <Label htmlFor={field.name}>
-                                        Title <span className="text-destructive">*</span>
-                                    </Label>
-                                    <Input
-                                        id={field.name}
-                                        value={field.state.value}
-                                        onChange={(e) => field.handleChange(e.target.value)}
-                                        onBlur={field.handleBlur}
-                                        placeholder="e.g. The Great Gatsby"
-                                        className={cn(
-                                            field.state.meta.errors.length > 0 &&
-                                            "border-destructive focus-visible:ring-destructive"
-                                        )}
-                                    />
-                                    <FieldError
-                                        message={field.state.meta.errors.join(', ')}
-                                    />
-                                </div>
-                            )}
-                        </form.Field>
-
-                        {/* Author */}
-                        <form.Field name="author">
-                            {(field) => (
-                                <div className="space-y-1.5">
-                                    <Label>Author</Label>
-                                    <SearchableSelect
-                                        options={authors}
-                                        value={field.state.value}
-                                        onChange={(val) => field.handleChange(val)}
-                                        placeholder="Select an author"
-                                        searchPlaceholder="Search authors..."
-                                        error={field.state.meta.errors.join(', ')}
-                                    />
-                                    <FieldError
-                                        message={field.state.meta.errors.join(', ')}
-                                    />
-                                </div>
-                            )}
-                        </form.Field>
-
-                        {/* Publisher */}
-                        <form.Field name="publisher">
-                            {(field) => (
-                                <div className="space-y-1.5">
-                                    <Label>Publisher</Label>
-                                    <SearchableSelect
-                                        options={publishers}
-                                        value={field.state.value}
-                                        onChange={(val) => field.handleChange(val)}
-                                        placeholder="Select a publisher"
-                                        searchPlaceholder="Search publishers..."
-                                        error={field.state.meta.errors.join(', ')}
-                                    />
-                                    <FieldError
-                                        message={field.state.meta.errors.join(', ')}
-                                    />
-                                </div>
-                            )}
-                        </form.Field>
-
-                        {/* Category */}
-                        <form.Field name="category">
-                            {(field) => (
-                                <div className="space-y-1.5">
-                                    <Label>Category</Label>
-                                    <SearchableSelect
-                                        options={categories}
-                                        value={field.state.value}
-                                        onChange={(val) => field.handleChange(val)}
-                                        placeholder="Select a category"
-                                        searchPlaceholder="Search categories..."
-                                        error={field.state.meta.errors.join(', ')}
-                                    />
-                                    <FieldError
-                                        message={field.state.meta.errors.join(', ')}
-                                    />
-                                </div>
-                            )}
-                        </form.Field>
-
-                        {/* Publication Year & Stock — side by side */}
-                        <div className="grid grid-cols-2 gap-4">
-                            {/* Publication Year */}
-                            <form.Field name="publication_year">
-                                {(field) => (
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor={field.name}>
-                                            Publication Year{" "}
-                                            <span className="text-destructive">*</span>
-                                        </Label>
+                </CardHeader>
+                <Separator />
+                <CardContent>
+                    <form id="create-book-form" onSubmit={form.handleSubmit(onSubmit)}>
+                        <FieldGroup>
+                            <Controller
+                                name="isbn"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field data-invalid={fieldState.invalid}>
+                                        <FieldLabel htmlFor="isbn">
+                                            ISBN
+                                        </FieldLabel>
                                         <Input
-                                            id={field.name}
-                                            type="number"
-                                            value={field.state.value}
-                                            onChange={(e) =>
-                                                field.handleChange(Number(e.target.value))
-                                            }
-                                            onBlur={field.handleBlur}
-                                            placeholder={String(new Date().getFullYear())}
-                                            min={1000}
-                                            max={new Date().getFullYear()}
-                                            className={cn(
-                                                field.state.meta.errors.length > 0 &&
-                                                "border-destructive focus-visible:ring-destructive"
-                                            )}
+                                            {...field}
+                                            id="isbn"
+                                            aria-invalid={fieldState.invalid}
+                                            placeholder="Book ISBN"
+                                            autoComplete="off"
                                         />
-                                        <FieldError
-                                            message={field.state.meta.errors.join(', ')}
-                                        />
-                                    </div>
+                                        {fieldState.invalid && (
+                                            <FieldError errors={[fieldState.error]} />
+                                        )}
+                                    </Field>
                                 )}
-                            </form.Field>
-
-                            {/* Stock Total */}
-                            <form.Field name="stock_total">
-                                {(field) => (
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor={field.name}>
-                                            Stock Total{" "}
-                                            <span className="text-destructive">*</span>
-                                        </Label>
+                            />
+                            <Controller
+                                name="title"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field data-invalid={fieldState.invalid}>
+                                        <FieldLabel htmlFor="title">
+                                            Title
+                                        </FieldLabel>
                                         <Input
-                                            id={field.name}
-                                            type="number"
-                                            value={field.state.value}
-                                            onChange={(e) =>
-                                                field.handleChange(Number(e.target.value))
-                                            }
-                                            onBlur={field.handleBlur}
-                                            placeholder="0"
-                                            min={0}
-                                            className={cn(
-                                                field.state.meta.errors.length > 0 &&
-                                                "border-destructive focus-visible:ring-destructive"
+                                            {...field}
+                                            id="title"
+                                            aria-invalid={fieldState.invalid}
+                                            placeholder="Book title"
+                                            autoComplete="off"
+                                        />
+                                        {fieldState.invalid && (
+                                            <FieldError errors={[fieldState.error]} />
+                                        )}
+                                    </Field>
+                                )}
+                            />
+                            <Controller
+                                name="author"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field data-invalid={fieldState.invalid}>
+                                        <FieldLabel htmlFor="author">
+                                            Author
+                                        </FieldLabel>
+                                        <SearchableSelect
+                                            options={authors}
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            placeholder="Select an author"
+                                            searchPlaceholder="Search authors..."
+                                            error={fieldState.error}
+                                        />
+                                        {fieldState.invalid && (
+                                            <FieldError errors={[fieldState.error]} />
+                                        )}
+                                    </Field>
+                                )}
+                            />
+                            <Controller
+                                name="publisher"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field data-invalid={fieldState.invalid}>
+                                        <FieldLabel htmlFor="publisher">
+                                            Publisher
+                                        </FieldLabel>
+                                        <SearchableSelect
+                                            options={publishers}
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            placeholder="Select an publisher"
+                                            searchPlaceholder="Search publishers..."
+                                            error={fieldState.error}
+                                        />
+                                        {fieldState.invalid && (
+                                            <FieldError errors={[fieldState.error]} />
+                                        )}
+                                    </Field>
+                                )}
+                            />
+                            <Controller
+                                name="category"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field data-invalid={fieldState.invalid}>
+                                        <FieldLabel htmlFor="category">
+                                            Category
+                                        </FieldLabel>
+                                        <SearchableSelect
+                                            options={categories}
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            placeholder="Select an category"
+                                            searchPlaceholder="Search categories..."
+                                            error={fieldState.error}
+                                        />
+                                        {fieldState.invalid && (
+                                            <FieldError errors={[fieldState.error]} />
+                                        )}
+                                    </Field>
+                                )}
+                            />
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* PUBLICATION YEAR */}
+                                <Controller
+                                    name="publication_year"
+                                    control={form.control}
+                                    render={({ field, fieldState }) => (
+                                        <Field aria-invalid={fieldState.invalid}>
+                                            <FieldLabel htmlFor={field.name}>
+                                                Publication Year
+                                            </FieldLabel>
+                                            <Input
+                                                {...field}
+                                                id={field.name}
+                                                type="number"
+                                                placeholder={String(new Date().getFullYear())}
+                                                min={1000}
+                                                max={new Date().getFullYear()}
+                                            />
+                                            {fieldState.invalid && (
+                                                <FieldError errors={[fieldState.error]} />
                                             )}
-                                        />
-                                        <FieldError
-                                            message={field.state.meta.errors.join(', ')}
-                                        />
-                                    </div>
-                                )}
-                            </form.Field>
-                        </div>
+                                        </Field>
+                                    )}
+                                />
 
-                        {/* Actions */}
-                        <div className="flex items-center justify-end gap-3 pt-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleReset}
-                                className="gap-2"
-                            >
-                                <RotateCcw className="w-4 h-4" />
-                                Reset
-                            </Button>
-                            <form.Subscribe
-                                selector={(state) => [state.canSubmit, state.isSubmitting]}
-                            >
-                                {([canSubmit, isSubmitting]) => (
-                                    <Button
-                                        type="submit"
-                                        disabled={!canSubmit || isSubmitting}
-                                        className="gap-2"
-                                    >
-                                        <BookPlus className="w-4 h-4" />
-                                        {isSubmitting ? "Saving..." : "Add Book"}
-                                    </Button>
-                                )}
-                            </form.Subscribe>
-                        </div>
+                                {/* STOCK TOTAL */}
+                                <Controller
+                                    name="stock_total"
+                                    control={form.control}
+                                    render={({ field, fieldState }) => (
+                                        <Field aria-invalid={fieldState.invalid}>
+                                            <FieldLabel htmlFor={field.name}>
+                                                Stock Total
+                                            </FieldLabel>
+                                            <Input
+                                                {...field}
+                                                id={field.name}
+                                                type="number"
+                                                placeholder="0"
+                                                min={0}
+                                            />
+                                            {fieldState.invalid && (
+                                                <FieldError errors={[fieldState.error]} />
+                                            )}
+                                        </Field>
+                                    )}
+                                />
+                            </div>
+                        </FieldGroup>
                     </form>
-                </div>
-            </div>
-        </div>
-    );
+                </CardContent>
+                <Separator />
+                <CardFooter>
+                    <Field orientation="horizontal">
+                        <Button type="button" variant="outline" onClick={() => form.reset()}>
+                            Reset
+                        </Button>
+                        <Button type="submit" form="create-book-form">
+                            Submit
+                        </Button>
+                    </Field>
+                </CardFooter>
+            </Card>
+        </>
+    )
 }
 
 BookCreatePage.layout = {

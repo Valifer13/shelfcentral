@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Publisher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class BookController extends Controller
@@ -50,33 +51,35 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
-        /* $validated = $request->validate([ */
-        /*     'isbn' => 'required|string|max:255', */
-        /*     'title' => 'required|string|max:255', */
-        /*     'author' => 'string|max:255', */
-        /*     'publisher' => 'string|max:255', */
-        /*     'category' => 'string|max:255', */
-        /*     'publication_year' => '' */
-        /* ]); */
-
         $validated = $request->validate([
-            'library_id'       => ['required', 'integer'],
-            'isbn'             => ['required', 'regex:/^[0-9-]+$/'],
+            'library_id'       => ['required', 'integer', 'exists:libraries,id'],
+            'isbn'             => ['required', 'regex:/^[0-9-]+$/', 'unique:books,isbn'],
             'title'            => ['required', 'string', 'max:255'],
-            'author'           => ['string', 'max:255'],
-            'publisher'        => ['string', 'max:255'],
-            'category'         => ['string', 'max:255'],
-            'publication_year' => ['required', 'date_format:Y', 'min:1000', 'max:' . date('Y')],
+            'author'           => ['nullable', 'string', 'max:255'],
+            'publisher'        => ['nullable', 'string', 'max:255'],
+            'category'         => ['nullable', 'string', 'max:255'],
+            'publication_year' => ['required', 'integer', 'min:1000', 'max:' . date('Y')],
             'stock_total'      => ['nullable', 'integer', 'min:0'],
         ]);
 
-        dd($validated);
+        DB::transaction(function () use ($validated) {
+            $author_id = Author::where('name', $validated['author'])->value('id');
+            $publisher_id = Publisher::where('name', $validated['publisher'])->value('id');
+            $category_id = Category::where('name', $validated['category'])->value('id');
 
-        $author_id = Author::where('name', $validated)->get();
+            $book = Book::create([
+                'library_id' => $validated['library_id'],
+                'isbn' => $validated['isbn'],
+                'title' => $validated['title'],
+                'author_id' => $author_id,
+                'publisher_id' => $publisher_id,
+                'category_id' => $category_id,
+                'publication_year' => (string) $validated['publication_year'],
+                'stock_total' => $validated['stock_total'] ?? 0,
+            ]);
+        });
 
-        $book = Book::create([]);
-
-        return to_route('books.index', ['book' => $book->id]);
+        return to_route('books.index');
     }
 
     /**

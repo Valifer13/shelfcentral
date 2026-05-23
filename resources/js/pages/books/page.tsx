@@ -5,7 +5,6 @@ import { columns } from "./columns";
 import { dashboard } from "@/routes";
 
 export default function BookIndexPage({ books }: { books: any }) {
-    console.log(books);
     return (
         <>
             <Head title="Book" />
